@@ -1,0 +1,137 @@
+swagger: "2.0"
+info:
+  description: "## pdown RESTful server APIs"
+  version: "1.0.0"
+  title: "pdown RESTful"
+  license:
+    name: "Apache 2.0"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+host: "127.0.0.1"
+basePath: "/"
+tags:
+- name: "config"
+  description: "服务器配置相关"
+- name: "task"
+  description: "下载任务相关"
+- name: "util"
+  description: "工具方法"
+schemes:
+- "http"
+paths:
+  /config:
+    put:
+      tags:
+      - "config"
+      summary: "更新服务器配置信息"
+      parameters:
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          $ref: "#/definitions/Config"
+      responses:
+        200:
+          description: "success"
+    get:
+      tags:
+      - "config"
+      summary: "获取服务器配置信息"
+      responses:
+        200:
+          description: "success"
+          schema:
+            $ref: "#/definitions/Config"
+  /tasks:
+    post:
+      tags:
+      - "task"
+      summary: "创建下载任务"
+      description: "创建成功后，如果正在下载的任务数量已满，则会是等待下载状态。如果请求里包含下载响应的大小和文件名称就不会在创建任务时额外发起一次请求去解析响应相关信息。"
+      parameters:
+      - in: "body"
+        name: "body"
+        schema:
+          $ref: "#/definitions/Config"
+      responses:
+        200:
+          description: "success"
+definitions:
+  Config:
+    type: "object"
+    properties:
+      filePath:
+        type: "string"
+        description: "默认下载路径."
+      connections:
+        type: "integer"
+        format: "int32"
+        description: "任务下载HTTP连接数."
+      timeout:
+        type: "integer"
+        format: "int32(S)"
+        description: "当一段时间内没有响应，将会自动重试."
+      retryCount:
+        type: "integer"
+        format: "int32"
+        description: "单个连接最大失败重试次数，当所有连接的失败次数都超出时，任务将停止下载并标记为失败."
+      speedLimit:
+        type: "integer"
+        format: "int64(B/S)"
+        description: "单个任务最大下载速度限制."
+      autoRename:
+        type: "boolean"
+        description: "当下载目录出现重名文件时是否自动重命名，当为false时出现重名文件的情况任务会创建失败."
+      port:
+        type: "integer"
+        format: "int32"
+        description: "服务器端口，默认为26339。"
+      taskLimit:
+        type: "integer"
+        format: "int32"
+        description: "最大同时下载的任务数量。"
+      totalSpeedLimit:
+        type: "integer"
+        format: "int64(B/S)"
+        description: "全局下载速度限制。"
+  CreateTaskForm:
+    type: "object"
+    properties:
+        request:
+            type: "object"
+            properties:
+                url:
+                  type: "string"
+                heads:
+                  type: "object"
+                  format: "{key:value}"
+                body:
+                  type: "string"
+        response:
+            type: "object"
+            properties:
+                fileName:
+                    type: "string"
+                totalSize:
+                    type: "integer"
+                    format: "int64"
+                supportRange:
+                    type: "boolean"
+        config:
+            type: "object"
+            properties:
+                filePath:
+                    type: "string"
+                connections:
+                    type: "integer"
+                    format: "int32"
+                timeout:
+                    type: "integer"
+                    format: "int32"
+                retryCount:
+                    type: "integer"
+                    format: "int32"
+                autoRename:
+                    type: "boolean"
+                speedLimit:
+                    type: "integer"
+                    format: "int64"
