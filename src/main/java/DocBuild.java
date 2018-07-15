@@ -6,11 +6,15 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import org.pdown.rest.form.CreateTaskForm;
+import org.pdown.rest.form.TaskForm;
+import org.pdown.rest.vo.ResumeVo;
 
 public class DocBuild {
 
   public static void main(String[] args) {
+    System.out.println(buildSwaggerDefinition(TaskForm.class));
     System.out.println(buildSwaggerDefinition(CreateTaskForm.class));
+    System.out.println(buildSwaggerDefinition(ResumeVo.class));
   }
 
   public static String buildSwaggerDefinition(Class<?> clazz) {
@@ -20,10 +24,10 @@ public class DocBuild {
   private static String buildSwaggerDefinition(Class<?> clazz, Type type, String fieldName, int level) {
     StringBuilder sb = new StringBuilder();
     StringBuilder tab1 = new StringBuilder();
-    for (int i = 0; i < level; i++) {
-      tab1.append("    ");
+    for (int i = 0; i < level+1; i++) {
+      tab1.append("  ");
     }
-    StringBuilder tab2 = new StringBuilder(tab1 + "    ");
+    StringBuilder tab2 = new StringBuilder(tab1 + "  ");
     FieldInfo fieldInfo = getFieldInfo(clazz);
     if (fieldName != null) {
       sb.append(tab1 + fieldName + ":\n");
@@ -36,7 +40,7 @@ public class DocBuild {
       sb.append(tab2 + "properties:\n");
       for (Field field : clazz.getDeclaredFields()) {
         if ((field.getModifiers() & (Modifier.FINAL | Modifier.TRANSIENT)) == 0) {
-          sb.append(buildSwaggerDefinition(field.getType(), field.getGenericType(), field.getName(), level + 1));
+          sb.append(buildSwaggerDefinition(field.getType(), field.getGenericType(), field.getName(), level + 2));
         }
       }
     }

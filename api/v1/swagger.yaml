@@ -46,15 +46,93 @@ paths:
       tags:
       - "task"
       summary: "创建下载任务"
-      description: "创建成功后，如果正在下载的任务数量已满，则会是等待下载状态。如果请求里包含下载响应的大小和文件名称就不会在创建任务时额外发起一次请求去解析响应相关信息。"
+      description: "创建成功后，如果正在下载的任务数量已满，则任务为待下载状态。如果请求里包含下载响应的大小和文件名称就不会在创建任务时额外发起一次请求去解析响应相关信息。"
       parameters:
       - in: "body"
         name: "body"
+        required: true
         schema:
-          $ref: "#/definitions/Task"
+          $ref: "#/definitions/TaskCreateForm"
       responses:
         200:
           description: "success"
+    get:
+      tags:
+      - "task"
+      summary: "获取任务列表"
+      responses:
+        200:
+          description: "success"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/TaskInfoForm"
+    delete:
+      tags:
+      - "task"
+      summary: "删除所有任务"
+      parameters:
+      - in: "query"
+        name: "delFile"
+        type: "integer"
+        format: "int32"
+        default: 0
+        description: "是否删除文件(1.是 0.否)"
+      responses:
+        200:
+          description: "success"
+  /tasks/{id}:
+    delete:
+      tags:
+      - "task"
+      summary: "删除指定任务"
+      parameters:
+      - in: "path"
+        name: "id"
+        type: "string"
+        required: true
+        description: "任务ID"
+      - in: "query"
+        name: "delFile"
+        type: "integer"
+        format: "int32"
+        default: 0
+        description: "是否删除文件(1.是 0.否)"
+      responses:
+        200:
+          description: "success"
+  /tasks/pause:
+    put:
+      tags:
+      - "task"
+      summary: "暂停所有任务"
+      responses:
+        200:
+          description: "success"
+  /tasks/{id}/pause:
+    put:
+      tags:
+      - "task"
+      summary: "暂停指定任务"
+      parameters:
+      - in: "path"
+        name: "id"
+        type: "string"
+        required: true
+        description: "任务ID"
+      responses:
+        200:
+          description: "success"
+  /tasks/resume:
+    put:
+      tags:
+      - "task"
+      summary: "恢复所有任务"
+      responses:
+        200:
+          description: "success"
+          schema:
+            $ref: "#/definitions/ResumeVo"
 definitions:
   Config:
     type: "object"
@@ -93,56 +171,158 @@ definitions:
         type: "integer"
         format: "int64(B/S)"
         description: "全局下载速度限制。"
-  Task:
+  TaskCreateForm:
     type: "object"
     properties:
-        request:
-            type: "object"
-            description: "下载请求信息"
-            properties:
-                url:
-                  type: "string"
-                  description: "请求URL"
-                heads:
-                  type: "object"
-                  description: "请求头，示例：{\"User-Agent:\",\"Chrome\"}"
-                  format: "{key:value}"
-                body:
-                  type: "string"
-                  description: "请求体，仅支持文本内容"
-        response:
-            type: "object"
-            description: "下载响应信息,如果知道响应的大小和文件名，则可以省去一次解析响应相关信息的请求"
-            properties:
-                fileName:
-                    type: "string"
-                    description: "文件名"
-                totalSize:
+      request:
+        $ref: "#/definitions/RequestForm"
+      response:
+        $ref: "#/definitions/ResponseForm"
+      config:
+        $ref: "#/definitions/ConfigForm"
+  ResumeVo:
+    type: "object"
+    properties:
+      pauseIds:
+        type: "array"
+        description: "暂停的任务ID列表."
+        items:
+          type: "string"
+      resumeIds:
+        type: "array"
+        description: "恢复的任务ID列表."
+        items:
+          type: "string"
+  TaskInfoForm:
+    type: "object"
+    properties:
+      id:
+        type: "string"
+        description: "任务ID."
+      request:
+        $ref: "#/definitions/RequestForm"
+      response:
+        $ref: "#/definitions/ResponseForm"
+      config:
+        $ref: "#/definitions/ConfigForm"
+      info:
+        type: "object"
+        description: "任务下载进度信息"
+        properties:
+          downSize:
+            type: "integer"
+            format: "int64"
+          startTime:
+            type: "integer"
+            format: "int64"
+          lastStartTime:
+            type: "integer"
+            format: "int64"
+          status:
+            type: "integer"
+            format: "int32"
+          speed:
+            type: "integer"
+            format: "int64"
+          chunkInfoList:
+            type: "array"
+            items:
+                type: "object"
+                properties:
+                  index:
                     type: "integer"
-                    description: "响应大小"
-                    format: "int64(B)"
-                supportRange:
-                    type: "boolean"
-                    description: "是否支持断点下载"
-        config:
-            type: "object"
-            description: "下载相关配置"
-            properties:
-                filePath:
-                    type: "string"
-                    description: "下载目录"
-                connections:
-                    type: "integer"
-                    description: "连接数(当不支持断点下载时，该参数不生效，连接数为1)"
                     format: "int32"
-                timeout:
+                  downSize:
                     type: "integer"
-                    description: "当一段时间内没有响应，将会自动重试."
-                    format: "int32(S)"
-                retryCount:
+                    format: "int64"
+                  totalSize:
                     type: "integer"
-                    description: "单个连接最大失败重试次数，当所有连接的失败次数都超出时，任务将停止下载并标记为失败."
+                    format: "int64"
+                  lastCountSize:
+                    type: "integer"
+                    format: "int64"
+                  lastPauseTime:
+                    type: "integer"
+                    format: "int64"
+                  pauseTime:
+                    type: "integer"
+                    format: "int64"
+                  status:
+                    type: "integer"
                     format: "int32"
-                autoRename:
-                    type: "boolean"
-                    description: "当下载目录出现重名文件时是否自动重命名，当为false时出现重名文件的情况任务会创建失败."
+                  speed:
+                    type: "integer"
+                    format: "int64"
+          connectInfoList:
+            type: "array"
+            items:
+                type: "object"
+                properties:
+                  startPosition:
+                    type: "integer"
+                    format: "int64"
+                  endPosition:
+                    type: "integer"
+                    format: "int64"
+                  downSize:
+                    type: "integer"
+                    format: "int64"
+                  errorCount:
+                    type: "integer"
+                    format: "int32"
+                  chunkIndex:
+                    type: "integer"
+                    format: "int32"
+                  status:
+                    type: "integer"
+                    format: "int32"
+  RequestForm:
+    type: "object"
+    description: "下载请求信息"
+    properties:
+      url:
+        type: "string"
+        description: "请求URL"
+      heads:
+        type: "object"
+        description: "请求头，示例：{\"User-Agent:\",\"Chrome\"}"
+        format: "{key:value}"
+      body:
+        type: "string"
+        description: "请求体，仅支持文本内容"
+  ResponseForm:
+    type: "object"
+    description: "下载响应信息,如果知道响应的大小和文件名，则可以省去一次解析响应相关信息的请求"
+    properties:
+      fileName:
+        type: "string"
+        description: "文件名"
+      totalSize:
+        type: "integer"
+        description: "响应大小"
+        format: "int64(B)"
+      supportRange:
+        type: "boolean"
+        description: "是否支持断点下载"
+  ConfigForm:
+    type: "object"
+    description: "下载相关配置"
+    properties:
+      filePath:
+          type: "string"
+          description: "下载目录"
+      connections:
+        type: "integer"
+        description: "连接数(当不支持断点下载时，该参数不生效，连接数为1)"
+        format: "int32"
+      timeout:
+        type: "integer"
+        description: "当一段时间内没有响应，将会自动重试."
+        format: "int32(S)"
+      retryCount:
+        type: "integer"
+        description: "单个连接最大失败重试次数，当所有连接的失败次数都超出时，任务将停止下载并标记为失败."
+        format: "int32"
+      autoRename:
+        type: "boolean"
+        description: "当下载目录出现重名文件时是否自动重命名，当为false时出现重名文件的情况任务会创建失败."
