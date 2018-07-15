@@ -6,7 +6,7 @@ info:
   license:
     name: "Apache 2.0"
     url: "http://www.apache.org/licenses/LICENSE-2.0.html"
-host: "127.0.0.1"
+host: "127.0.0.1:26339"
 basePath: "/"
 tags:
 - name: "config"
@@ -51,7 +51,7 @@ paths:
       - in: "body"
         name: "body"
         schema:
-          $ref: "#/definitions/Config"
+          $ref: "#/definitions/Task"
       responses:
         200:
           description: "success"
@@ -93,45 +93,56 @@ definitions:
         type: "integer"
         format: "int64(B/S)"
         description: "全局下载速度限制。"
-  CreateTaskForm:
+  Task:
     type: "object"
     properties:
         request:
             type: "object"
+            description: "下载请求信息"
             properties:
                 url:
                   type: "string"
+                  description: "请求URL"
                 heads:
                   type: "object"
+                  description: "请求头，示例：{\"User-Agent:\",\"Chrome\"}"
                   format: "{key:value}"
                 body:
                   type: "string"
+                  description: "请求体，仅支持文本内容"
         response:
             type: "object"
+            description: "下载响应信息,如果知道响应的大小和文件名，则可以省去一次解析响应相关信息的请求"
             properties:
                 fileName:
                     type: "string"
+                    description: "文件名"
                 totalSize:
                     type: "integer"
-                    format: "int64"
+                    description: "响应大小"
+                    format: "int64(B)"
                 supportRange:
                     type: "boolean"
+                    description: "是否支持断点下载"
         config:
             type: "object"
+            description: "下载相关配置"
             properties:
                 filePath:
                     type: "string"
+                    description: "下载目录"
                 connections:
                     type: "integer"
+                    description: "连接数(当不支持断点下载时，该参数不生效，连接数为1)"
                     format: "int32"
                 timeout:
                     type: "integer"
-                    format: "int32"
+                    description: "当一段时间内没有响应，将会自动重试."
+                    format: "int32(S)"
                 retryCount:
                     type: "integer"
+                    description: "单个连接最大失败重试次数，当所有连接的失败次数都超出时，任务将停止下载并标记为失败."
                     format: "int32"
                 autoRename:
                     type: "boolean"
-                speedLimit:
-                    type: "integer"
-                    format: "int64"
+                    description: "当下载目录出现重名文件时是否自动重命名，当为false时出现重名文件的情况任务会创建失败."
