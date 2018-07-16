@@ -274,6 +274,31 @@ definitions:
         type: "integer"
         format: "int64(B/S)"
         description: "全局下载速度限制。"
+      proxyConfig:
+        type: "object"
+        description: "二级代理设置"
+        properties:
+          proxyType:
+            type: "string"
+            description: "代理服务器类型"
+            default: "HTTP"
+            enum:
+            - "HTTP"
+            - "SOCKS4"
+            - "SOCKS5"
+          host:
+            type: "string"
+            description: "代理服务器地址"
+          port:
+            type: "integer"
+            format: "int32"
+            description: "代理服务器端口号"
+          user:
+            type: "string"
+            description: "代理服务器验证用户名"
+          pwd:
+            type: "string"
+            description: "代理服务器验证密码"
   TaskCreateForm:
     type: "object"
     properties:
