@@ -28,19 +28,31 @@ paths:
         name: "body"
         required: true
         schema:
-          $ref: "#/definitions/Config"
+          $ref: "#/definitions/ServerConfig"
       responses:
         200:
-          description: "success"
+          description: "成功"
+        400:
+          description: "参数错误(code=4000 参数解析错误)"
+          schema:
+            $ref: "#/definitions/BadRequest"
+        500:
+          description: "服务器异常"
     get:
       tags:
       - "config"
       summary: "获取服务器配置信息"
       responses:
         200:
-          description: "success"
+          description: "成功"
           schema:
-            $ref: "#/definitions/Config"
+            $ref: "#/definitions/ServerConfig"
+        400:
+          description: "参数错误(code=4000 参数解析错误)"
+          schema:
+            $ref: "#/definitions/BadRequest"
+        500:
+          description: "服务器异常"
   /tasks:
     post:
       tags:
@@ -55,7 +67,15 @@ paths:
           $ref: "#/definitions/TaskCreateForm"
       responses:
         200:
-          description: "success"
+          description: "创建成功后的任务相关信息"
+          schema:
+            $ref: "#/definitions/TaskInfoForm"
+        400:
+          description: "参数错误(code=4000 参数解析错误,code=4001 请求为空,code=4002 URL为空)"
+          schema:
+            $ref: "#/definitions/BadRequest"
+        500:
+          description: "服务器异常"
     get:
       tags:
       - "task"
@@ -67,6 +87,10 @@ paths:
             type: "array"
             items:
               $ref: "#/definitions/TaskInfoForm"
+        404:
+          description: "任务不存在"
+        500:
+          description: "服务器异常"
     delete:
       tags:
       - "task"
@@ -74,13 +98,14 @@ paths:
       parameters:
       - in: "query"
         name: "delFile"
-        type: "integer"
-        format: "int32"
-        default: 0
-        description: "是否删除文件(1.是 0.否)"
+        type: "boolean"
+        default: false
+        description: "是否删除已下载的文件"
       responses:
         200:
-          description: "success"
+          description: "成功"
+        500:
+          description: "服务器异常"
   /tasks/{id}:
     delete:
       tags:
@@ -94,13 +119,16 @@ paths:
         description: "任务ID"
       - in: "query"
         name: "delFile"
-        type: "integer"
-        format: "int32"
-        default: 0
-        description: "是否删除文件(1.是 0.否)"
+        type: "boolean"
+        default: false
+        description: "是否删除已下载的文件"
       responses:
         200:
-          description: "success"
+          description: "成功"
+        404:
+          description: "任务不存在"
+        500:
+          description: "服务器异常"
   /tasks/pause:
     put:
       tags:
@@ -108,7 +136,9 @@ paths:
       summary: "暂停所有任务"
       responses:
         200:
-          description: "success"
+          description: "成功"
+        500:
+          description: "服务器异常"
   /tasks/{id}/pause:
     put:
       tags:
@@ -122,7 +152,11 @@ paths:
         description: "任务ID"
       responses:
         200:
-          description: "success"
+          description: "成功"
+        404:
+          description: "任务不存在"
+        500:
+          description: "服务器异常"
   /tasks/resume:
     put:
       tags:
@@ -130,11 +164,80 @@ paths:
       summary: "恢复所有任务"
       responses:
         200:
-          description: "success"
+          description: "成功"
           schema:
             $ref: "#/definitions/ResumeVo"
+        500:
+          description: "服务器异常"
+  /tasks/{id}/resume:
+    put:
+      tags:
+      - "task"
+      summary: "恢复指定任务"
+      parameters:
+      - in: "path"
+        name: "id"
+        type: "string"
+        required: true
+        description: "任务ID"
+      responses:
+        200:
+          description: "成功"
+          schema:
+            $ref: "#/definitions/ResumeVo"
+        404:
+          description: "任务不存在"
+        500:
+          description: "服务器异常"
+  /tasks/progress:
+    get:
+      tags:
+      - "task"
+      summary: "获取指定任务的下载进度"
+      parameters:
+      - in: "query"
+        name: "ids"
+        type: "array"
+        items:
+          type: "string"
+        collectionFormat: "csv"
+        required: true
+        description: "任务ID列表,多个用,隔开"
+      responses:
+        200:
+          description: "成功"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/TaskInfoForm"
+        404:
+          description: "任务不存在"
+        500:
+          description: "服务器异常"
+  /util/resolve:
+    put:
+      tags:
+      - "util"
+      summary: "解析请求,获取响应的大小和文件名以及是否支持断点下载"
+      parameters:
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          $ref: "#/definitions/RequestForm"
+      responses:
+        200:
+          description: "成功"
+          schema:
+              $ref: "#/definitions/ResponseForm"
+        400:
+          description: "参数错误(code=4000 参数解析错误,code=4001 URL为空)"
+          schema:
+            $ref: "#/definitions/BadRequest"
+        500:
+          description: "服务器异常"
 definitions:
-  Config:
+  ServerConfig:
     type: "object"
     properties:
       filePath:
@@ -326,3 +429,11 @@ definitions:
       autoRename:
         type: "boolean"
         description: "当下载目录出现重名文件时是否自动重命名，当为false时出现重名文件的情况任务会创建失败."
+  BadRequest:
+    type: "object"
+    properties:
+      code:
+        type: "integer"
+        format: "int32"
+      msg:
+        type: "string"
