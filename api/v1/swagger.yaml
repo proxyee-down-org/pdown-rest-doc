@@ -33,7 +33,11 @@ paths:
         200:
           description: "成功"
         400:
-          description: "参数错误(code=4000 参数解析错误)"
+          description: "参数错误\n
+            状态码 | 含义\n
+            ---|---\n
+            4000|参数解析错误\n
+            "
           schema:
             $ref: "#/definitions/BadRequest"
         500:
@@ -47,10 +51,6 @@ paths:
           description: "成功"
           schema:
             $ref: "#/definitions/ServerConfig"
-        400:
-          description: "参数错误(code=4000 参数解析错误)"
-          schema:
-            $ref: "#/definitions/BadRequest"
         500:
           description: "服务器异常"
   /tasks:
@@ -71,7 +71,18 @@ paths:
           schema:
             $ref: "#/definitions/TaskInfoForm"
         400:
-          description: "参数错误(code=4000 参数解析错误,code=4001 请求为空,code=4002 URL为空)"
+          description: "参数错误\n
+            状态码 | 含义\n
+            ---|---\n
+            4000|参数解析错误\n
+            4001|请求对象不能为空\n
+            4002|请求地址不能为空\n
+            4003|文件保存路径不能为空\n
+            4004|创建文件夹失败\n
+            4005|无写入权限\n
+            4006|磁盘空间不足\n
+            4007|文件已存在\n
+            "
           schema:
             $ref: "#/definitions/BadRequest"
         500:
@@ -231,7 +242,12 @@ paths:
           schema:
               $ref: "#/definitions/ResponseForm"
         400:
-          description: "参数错误(code=4000 参数解析错误,code=4001 URL为空)"
+          description: "参数错误\n
+            状态码 | 含义\n
+            ---|---\n
+            4000|参数解析错误\n
+            4001|请求地址不能为空\n
+            "
           schema:
             $ref: "#/definitions/BadRequest"
         500:
@@ -340,70 +356,91 @@ definitions:
           downSize:
             type: "integer"
             format: "int64"
+            description: "已下载大小(B)"
           startTime:
             type: "integer"
             format: "int64"
+            description: "任务开始时间(timestamp)"
           lastStartTime:
             type: "integer"
             format: "int64"
+            description: "任务最近一次开始下载时间(timestamp)"
           status:
             type: "integer"
             format: "int32"
+            description: "状态(0.待下载 1.下载中 2.暂停 3.下载失败 4.下载完成)"
           speed:
             type: "integer"
             format: "int64"
+            description: "任务下载速度(B/S)"
           chunkInfoList:
             type: "array"
+            description: "任务所有分段的下载进度信息"
             items:
                 type: "object"
                 properties:
                   index:
                     type: "integer"
                     format: "int32"
+                    description: "分段下标，从0开始"
                   downSize:
                     type: "integer"
                     format: "int64"
+                    description: "已下载大小(B)"
                   totalSize:
                     type: "integer"
                     format: "int64"
+                    description: "分段总大小(B)"
                   lastCountSize:
                     type: "integer"
                     format: "int64"
+                    description: "最后一次统计瞬时速度的时间(timestamp)"
                   lastPauseTime:
                     type: "integer"
                     format: "int64"
+                    description: "最后一暂停的时间(timestamp)"
                   pauseTime:
                     type: "integer"
                     format: "int64"
+                    description: "总共暂停的时间(timestamp)"
                   status:
                     type: "integer"
                     format: "int32"
+                    description: "状态(0.待下载 1.下载中 2.暂停 3.下载失败 4.下载完成)"
                   speed:
                     type: "integer"
                     format: "int64"
+                    description: "分段下载速度(B/S)"
           connectInfoList:
             type: "array"
+            description: "任务所有连接的信息"
             items:
                 type: "object"
                 properties:
                   startPosition:
                     type: "integer"
                     format: "int64"
+                    description: "连接请求起始偏移地址(B)"
                   endPosition:
                     type: "integer"
                     format: "int64"
+                    description: "连接请结束偏移地址(B)"
                   downSize:
                     type: "integer"
                     format: "int64"
+                    description: "已下载大小(B)"
                   errorCount:
                     type: "integer"
                     format: "int32"
+                    description: "下载失败次数"
                   chunkIndex:
                     type: "integer"
                     format: "int32"
+                    description: "连接所属的分段"
                   status:
                     type: "integer"
                     format: "int32"
+                    description: "状态(1.下载中 4.下载完成)"
   RequestForm:
     type: "object"
     description: "下载请求信息"
@@ -456,9 +493,12 @@ definitions:
         description: "当下载目录出现重名文件时是否自动重命名，当为false时出现重名文件的情况任务会创建失败."
   BadRequest:
     type: "object"
+    description: "请求参数异常时的响应"
     properties:
       code:
         type: "integer"
         format: "int32"
+        description: "异常状态码"
       msg:
         type: "string"
+        description: "异常原因"
