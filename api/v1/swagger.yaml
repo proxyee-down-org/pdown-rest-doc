@@ -117,17 +117,17 @@ paths:
           description: "成功"
         500:
           description: "服务器异常"
-  /tasks/{id}:
+  /tasks/{ids}:
     delete:
       tags:
       - "task"
       summary: "删除指定任务"
       parameters:
       - in: "path"
-        name: "id"
+        name: "ids"
         type: "string"
         required: true
-        description: "任务ID"
+        description: "任务ID(多个用,隔开)"
       - in: "query"
         name: "delFile"
         type: "boolean"
@@ -150,17 +150,17 @@ paths:
           description: "成功"
         500:
           description: "服务器异常"
-  /tasks/{id}/pause:
+  /tasks/{ids}/pause:
     put:
       tags:
       - "task"
       summary: "暂停指定任务"
       parameters:
       - in: "path"
-        name: "id"
+        name: "ids"
         type: "string"
         required: true
-        description: "任务ID"
+        description: "任务ID(多个用,隔开)"
       responses:
         200:
           description: "成功"
@@ -180,17 +180,17 @@ paths:
             $ref: "#/definitions/ResumeVo"
         500:
           description: "服务器异常"
-  /tasks/{id}/resume:
+  /tasks/{ids}/resume:
     put:
       tags:
       - "task"
       summary: "恢复指定任务"
       parameters:
       - in: "path"
-        name: "id"
+        name: "ids"
         type: "string"
         required: true
-        description: "任务ID"
+        description: "任务ID(多个用,隔开)"
       responses:
         200:
           description: "成功"
